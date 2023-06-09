@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html lang="en" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head/>
+<style>
+    #footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+<h:body>
+    <div id="header">
+        <h:form rendered="#{userLogged != null}">
+            <h:outputText value="#{sessionScope['userLogged'].email}"/><br/>
+            <h:commandLink value="Logout" action="#{loginBean.logout}"/>
+        </h:form>
+        <h:graphicImage library="images" name="logo.png" />
+        <h1><ui:insert name="title"></ui:insert></h1>
+    </div>
+
+    <div id="content">
+        <ui:insert name="content"></ui:insert>
+    </div>
+
+    <div id="footer">
+        copyright 2023
+        <ui:insert name="footer"></ui:insert>
+    </div>
+</h:body>
+</html>
