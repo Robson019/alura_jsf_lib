@@ -3,6 +3,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 
 <ui:composition template="_template.xhtml">
@@ -11,100 +12,90 @@
         <f:viewAction action="#{bookBean.loadBookById}" if="#{param.bookId != null}"/>
     </f:metadata>
     <ui:define name="title">
-        New Book
+        <p:outputPanel>New Book</p:outputPanel>
     </ui:define>
     <ui:define name="content">
         <h:form>
-            <h:messages id="messages"/>
-            <fieldset>
-                <legend>Book data</legend>
-                <h:panelGrid columns="2">
-                    <h:outputLabel value="Title:" for="title"/>
-                    <h:inputText id="title" value="#{bookBean.book.title}" required="true" requiredMessage="[ERROR] Title is required"
+            <p:messages id="messages"/>
+            <p:fieldset legend="Book data">
+                <p:panelGrid columns="2">
+                    <p:outputLabel value="Title:" for="title"/>
+                    <p:inputText id="title" value="#{bookBean.book.title}" required="true" requiredMessage="[ERROR] Title is required"
                                  validatorMessage="[ERROR] Lenght limit are 40 characters">
                         <f:validateLength maximum="40" />
                         <f:ajax event="blur" render="messages" />
-                    </h:inputText>
-                    <h:outputLabel value="ISBN:" for="isbn"/>
-                    <h:inputText id="isbn" value="#{bookBean.book.isbn}" validator="#{bookBean.isbnStartWithOne}" >
-                        <f:ajax event="keyup" render="messages"/>
-                    </h:inputText>
-                    <h:outputLabel value="Price:" for="price"/>
-                    <h:inputText id="price" value="#{bookBean.book.price}" validatorMessage="[ERROR] Invalid range price (1 >= 1000)" >
+                    </p:inputText>
+                    <p:outputLabel value="ISBN:" for="isbn"/>
+                    <p:inputMask id="isbn" value="#{bookBean.book.isbn}" validator="#{bookBean.isbnStartWithOne}" mask="999-9-99-999999-9"/>
+
+                    <p:outputLabel value="Price:" for="price"/>
+                    <p:inputNumber id="price" value="#{bookBean.book.price}" validatorMessage="[ERROR] Invalid range price (1 >= 1000)" >
                         <f:validateDoubleRange minimum="1" maximum="1000" />
-                    </h:inputText>
-                    <h:outputLabel value="Release data:" for="releaseAt"/>
-                    <h:inputText id="releaseAt" value="#{bookBean.book.releaseAt.time}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Sao_Paulo" />
-                    </h:inputText>
-                </h:panelGrid>
-            </fieldset>
+                    </p:inputNumber>
 
-            <fieldset>
-                <legend>Author data</legend>
-                <h:outputLabel value="Select Author:" for="author"/>
-                <h:selectOneMenu id="author" value="#{bookBean.authorId}">
-                    <f:selectItems value="#{bookBean.authors}" var="author" itemLabel="#{author.name}" itemValue="#{author.id}"/>
-                </h:selectOneMenu>
-                <h:commandButton value="Register Author" action="#{bookBean.registerAuthor}" >
-                    <f:ajax execute="author" render="authorTable" />
-                </h:commandButton><br/>
+                    <p:outputLabel value="Release data:" for="releaseAt"/>
+                    <p:calendar id="releaseAt" value="#{bookBean.book.releaseAt.time}" timeZone="America/Sao_Paulo" pattern="dd/MM/yyyy HH:mm" mask="true" showOn="button"/>
+                </p:panelGrid>
+            </p:fieldset>
 
-                <h:commandLink value="Register new author" action="#{bookBean.formAuthor}" immediate="true"/>
+            <p:fieldset legend="Author data">
+                <p:panelGrid columns="4">
+                    <p:outputLabel value="Select Author:" for="author"/>
 
-                <h:dataTable id="authorTable" value="#{bookBean.bookAuthors}" var="author">
-                    <h:column>
+                    <p:selectOneMenu id="author" value="#{bookBean.authorId}">
+                        <f:selectItems value="#{bookBean.authors}" var="author" itemLabel="#{author.name}" itemValue="#{author.id}"/>
+                    </p:selectOneMenu>
+                    <p:commandButton value="Register Author" action="#{bookBean.registerAuthor}"  process="@this author" update="authorTable" />
+
+                    <p:commandLink value="Register new author" action="#{bookBean.formAuthor}" immediate="true" update="@all"/>
+                </p:panelGrid>
+
+                <p:dataTable id="authorTable" value="#{bookBean.bookAuthors}" var="author" emptyMessage="No authors selected">
+                    <p:column>
                         <h:outputText value="#{author.name}" />
-                    </h:column>
+                    </p:column>
 
-                    <h:column>
-                        <h:commandLink value="X" action="#{bookBean.removeAuthor(author)}" />
-                    </h:column>
-                </h:dataTable>
-            </fieldset>
-            <h:commandButton value="Register Book" action="#{bookBean.register}" >
-                <f:ajax execute="@form" render="@form :formBookTable:bookTable" />
-            </h:commandButton>
+                    <p:column>
+                        <p:commandButton icon="pi pi-trash" style="background-color: red" action="#{bookBean.removeAuthor(author)}" process="@this" update="authorTable"/>
+                    </p:column>
+                </p:dataTable>
+            </p:fieldset>
+            <p:commandButton value="Register Book" action="#{bookBean.register}" process="@form" update="@form :formBookTable:bookTable" />
         </h:form>
 
         <h:form id="formBookTable">
-            <h:dataTable id="bookTable" value="#{bookBean.books}" var="book">
-                <h:column>
-                    <f:facet name="header">Title</f:facet>
+            <p:dataTable id="bookTable" value="#{bookBean.books}" var="book" emptyMessage="No books registered" rows="5" paginator="true">
+                <f:facet name="header">Books</f:facet>
+                <p:column filterBy="#{book.title}" filterMatchMode="startsWith" headerText="Title" sortBy="#{book.title}">
                     <h:outputText value="#{book.title}" />
-                </h:column>
+                </p:column>
 
-                <h:column>
-                    <f:facet name="header">ISBN</f:facet>
+                <p:column filterBy="#{book.isbn}" filterMatchMode="startsWith" headerText="ISBN" sortBy="#{book.isbn}">
                     <h:outputText value="#{book.isbn}" />
-                </h:column>
+                </p:column>
 
-                <h:column>
-                    <f:facet name="header">Price</f:facet>
+                <p:column filterBy="#{book.price}" filterFunction="#{bookBean.lowestPrice}" headerText="Price" sortBy="#{book.price}">
                     <h:outputText value="#{book.price}" >
                         <f:convertNumber type="currency" pattern="R$ #0.00" currencySymbol="R$" locale="pt_BR" />
                     </h:outputText>
-                </h:column>
+                </p:column>
 
-                <h:column>
-                    <f:facet name="header">Released</f:facet>
+                <p:column filterBy="#{book.releaseAt.time}" filterMatchMode="startsWith" headerText="Released" sortBy="#{book.releaseAt.time}">
                     <h:outputText value="#{book.releaseAt.time}" >
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Sao_Paulo" />
                     </h:outputText>
-                </h:column>
+                </p:column>
 
-                <h:column>
-                    <f:facet name="header">Update</f:facet>
+                <p:column headerText="Update">
                     <h:commandLink value="update" >
                         <f:setPropertyActionListener target="#{bookBean.book}" value="#{book}" />
                     </h:commandLink>
-                </h:column>
+                </p:column>
 
-                <h:column>
-                    <f:facet name="header">Remove</f:facet>
+                <p:column headerText="Remove">
                     <h:commandLink value="remove" action="#{bookBean.remove(book)}"/>
-                </h:column>
-            </h:dataTable>
+                </p:column>
+            </p:dataTable>
         </h:form>
     </ui:define>
     <ui:define name="footer">

@@ -10,16 +10,18 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 
 @ManagedBean
 @ViewScoped
-public class BookBean {
+public class BookBean implements Serializable {
 
     private Book book = new Book();
     private Integer authorId;
     private Integer bookId;
-
+    private List<Book> books;
 
     public Integer getAuthorId() {
         return authorId;
@@ -37,7 +39,13 @@ public class BookBean {
         this.book = book;
     }
 
-    public List<Book> getBooks() { return new DAO<Book>(Book.class).getAll(); }
+    public List<Book> getBooks() {
+        DAO<Book> dao = new DAO<Book>(Book.class);
+        if(this.books == null) {
+            this.books = dao.getAll();
+        }
+        return books;
+    }
 
     public List<Author> getAuthors() {
         return new DAO<Author>(Author.class).getAll();
@@ -74,12 +82,15 @@ public class BookBean {
 
         if(book.getAuthors().isEmpty()) {
             FacesContext.getCurrentInstance().addMessage("author", new FacesMessage("[ERROR] The book needs one or more authors"));
+            return;
         }
 
+        DAO<Book> dao = new DAO<Book>(Book.class);
         if (this.book.getId() == null) {
-            new DAO<Book>(Book.class).insert(this.book);
+            dao.insert(this.book);
+            this.books = dao.getAll();
         } else {
-            new DAO<Book>(Book.class).update(this.book);
+            dao.update(this.book);
         }
 
         this.book = new Book();
@@ -98,6 +109,38 @@ public class BookBean {
         String value = valueParam.toString();
         if(!value.startsWith("1")){
             throw new ValidatorException(new FacesMessage("[ERROR] ISBN needs to start with one"));
+        }
+    }
+
+    public boolean lowestPrice(Object columnValue, Object filter, Locale locale) {
+
+        //tirando espaços do filtro
+        String textTyped = (filter == null) ? null : filter.toString().trim();
+
+        System.out.println("Filtering by " + textTyped + ", value of element: " + columnValue);
+
+        // o filtro é nulo ou vazio?
+        if (textTyped == null || textTyped.equals("")) {
+            return true;
+        }
+
+        // elemento da tabela é nulo?
+        if (columnValue == null) {
+            return false;
+        }
+
+        try {
+            // fazendo o parsing do filtro para converter para Double
+            Double priceTyped = Double.valueOf(textTyped);
+            Double columnPrice = (Double) columnValue;
+
+            // comparando os valores, compareTo devolve um valor negativo se o value é menor do que o filtro
+            return columnPrice.compareTo(priceTyped) < 0;
+
+        } catch (NumberFormatException e) {
+
+            // usuario nao digitou um numero
+            return false;
         }
     }
 }

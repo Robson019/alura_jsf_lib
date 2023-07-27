@@ -3,6 +3,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 
 <ui:composition template="_template.xhtml">
@@ -11,54 +12,48 @@
         <f:viewAction action="#{authorBean.loadAuthorById}" if="#{param.authorId != null}"/>
     </f:metadata>
     <ui:define name="title">
-        New Author
+        <p:outputPanel>New Author</p:outputPanel>
     </ui:define>
     <ui:define name="content">
         <h:form id="author">
-            <fieldset>
-                <legend>Author data</legend>
+            <p:fieldset legend="Author data">
                 <h:panelGrid columns="3">
 
-                    <h:outputLabel value="Name:" for="name"/>
-                    <h:inputText id="name" value="#{authorBean.author.name}" required="true">
+                    <p:outputLabel value="Name:" for="name"/>
+                    <p:inputText id="name" value="#{authorBean.author.name}" required="true">
                         <f:validateLength minimum="5" />
                         <f:ajax event="blur" render="messageName" />
-                    </h:inputText>
+                    </p:inputText>
 
-                    <h:message for="name" id="messageName" />
+                    <p:message for="name" id="messageName" />
 
-                    <h:outputLabel value="Email:" for="email" />
-                    <h:inputText id="email" value="#{authorBean.author.email}" required="true">
-                        <f:passThroughAttribute name="type" value="email" />
-                    </h:inputText>
+                    <p:outputLabel value="Email:" for="email" />
+                    <p:inputText id="email" value="#{authorBean.author.email}" required="true" validatorMessage="[ERROR] Invalid email">
+                        <f:passThroughAttribute name="placeholder" value="author email" />
+                        <f:validateRegex pattern=".+@.+"/>
+                        <f:ajax event="blur" render="messageEmail" />
+                    </p:inputText>
 
-                    <h:message for="email" id="messageEmail" />
+                    <p:message for="email" id="messageEmail" />
 
-                    <h:commandButton value="Register" action="#{authorBean.register}"/>
-                    <h:commandLink value="Register new book" action="#{authorBean.formBook}" immediate="true"/>
+                    <p:commandButton value="Register" action="#{authorBean.register}" update="@form :formAuthorTable" process="@form"/>
+                    <p:commandLink value="Register new book" action="#{authorBean.formBook}" immediate="true"/>
                 </h:panelGrid>
-            </fieldset>
+            </p:fieldset>
         </h:form>
 
         <h:form id="formAuthorTable">
-            <h:dataTable id="authorTable" value="#{authorBean.authors}" var="author">
-                <h:column>
-                    <f:facet name="header">Name</f:facet>
-                    <h:outputText value="#{author.name}" />
-                </h:column>
+            <p:dataList value="#{authorBean.authors}" var="author" type="definition">
+                    <f:facet name="header">Authors</f:facet>
 
-                <h:column>
-                    <f:facet name="header">Update</f:facet>
-                    <h:commandLink value="update">
-                        <f:setPropertyActionListener target="#{authorBean.author}" value="#{author}" />
-                    </h:commandLink>
-                </h:column>
+                <p:commandButton icon="pi pi-pencil" update=":author">
+                    <f:setPropertyActionListener target="#{authorBean.author}" value="#{author}" />
+                </p:commandButton>
 
-                <h:column>
-                    <f:facet name="header">Remove</f:facet>
-                    <h:commandLink value="remove" action="#{authorBean.remove(author)}"/>
-                </h:column>
-            </h:dataTable>
+                <p:commandButton icon="pi pi-trash" style="background-color: red" action="#{authorBean.remove(author)}" update="@form"/>
+
+                #{author.name} - #{author.email}
+            </p:dataList>
         </h:form>
     </ui:define>
     <ui:define name="footer">

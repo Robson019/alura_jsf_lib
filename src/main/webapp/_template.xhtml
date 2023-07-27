@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
 <html lang="en" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:ui="http://java.sun.com/jsf/facelets">
 
 <h:head/>
@@ -13,11 +15,18 @@
 </style>
 <h:body>
     <div id="header">
-        <h:form rendered="#{userLogged != null}">
-            <h:outputText value="#{sessionScope['userLogged'].email}"/><br/>
-            <h:commandLink value="Logout" action="#{loginBean.logout}"/>
-        </h:form>
         <h:graphicImage library="images" name="logo.png" />
+
+        <h:form rendered="#{userLogged != null}">
+            <p:menuButton value="Menu">
+                <p:menuitem value="Books" action="book?faces-redirect=true" icon="pi pi-book"/>
+                <p:menuitem value="Authors" action="author?faces-redirect=true" icon="pi pi-user"/>
+                <p:menuitem value="Sales" action="sales?faces-redirect=true" icon="pi pi-shopping-cart"/>
+                <p:separator />
+                <p:menuitem value="Logout" action="#{loginBean.logout}" icon="pi pi-sign-out"/>
+            </p:menuButton>
+        </h:form>
+
         <h1><ui:insert name="title"></ui:insert></h1>
     </div>
 
